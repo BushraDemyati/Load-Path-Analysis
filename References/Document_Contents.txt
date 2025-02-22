@@ -1,0 +1,15 @@
+File contents:
+
+Transferred Load and Its Course in Passenger Car Bodies: 
+This contains information  about the theory, application, and optimization conditions. 
+
+Vibration Reduction in the Cabins of Heavy-Duty Trucks Using the Theory of Load Transfer Paths:
+This contains information  about the theory, application, and optimization conditions, as well as a comparison to sensitivity analysis. 
+This paper used the load path analysis method to optimize the cross-section of a cantilever. 
+
+Comparison of Quantitative and Qualitative Information Provided by Different Structural Load Path Definitions:
+This paper compares different load path analysis methods and explores using different loading and geometries. It mentions pros adn cons of using the methods. 
+
+Master_s_Thesis_Load_Path_Visualisation-final:
+This document contains the step-by-step procedure for the load path analysis. Ansys, MATLAB, and ParaView are all used in this thesis.
+The method was also used for 2D and 3D problems. 
