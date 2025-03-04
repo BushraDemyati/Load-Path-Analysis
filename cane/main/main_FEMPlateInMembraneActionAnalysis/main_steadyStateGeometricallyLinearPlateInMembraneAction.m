@@ -181,10 +181,14 @@ end
         end
     end
     SupportNodes = unique(SupportNodes);
+    RightEdgeSupportNodes = SupportNodes(find((strMsh.nodes(SupportNodes,2) == max(strMsh.nodes(:,2)))));
     DOFsSupportNodes = homDOFs';
+    DOFsRightEdgeSupportNodes = zeros(length(RightEdgeSupportNodes),1);
+    DOFsRightEdgeSupportNodes(1:end) = 2*RightEdgeSupportNodes-1;
 
-    SupportAndLoadNodes_Ordered = sort([LoadNodes; SupportNodes]);
-    DOFsSupportAndLoadNodes_Ordered = sort([DOFsLoadNodes; DOFsSupportNodes]);
+    % SupportAndLoadNodes_Ordered = sort([LoadNodes; SupportNodes]);
+    SupportAndLoadNodes_Ordered = sort([LoadNodes; RightEdgeSupportNodes]);
+    DOFsSupportAndLoadNodes_Ordered = sort([DOFsLoadNodes; DOFsRightEdgeSupportNodes]);
     FreeNodes = (1:numNodes)';
     FreeNodes(SupportAndLoadNodes_Ordered) = [];
     DOFsFreeNodes = 1:2*numNodes;
@@ -236,8 +240,42 @@ end
 
     end
 
-    U_index(LoadNodes) = 1;
+U_index(LoadNodes) = 1;
 
+%% Visualization of load path - updated
+
+XNodesPlot = strMsh.nodes(:,2);
+YNodesPlot = strMsh.nodes(:,3);
+
+[X,Y]=meshgrid(linspace(min(XNodesPlot),max(XNodesPlot),50),linspace(min(YNodesPlot),max(YNodesPlot),50));
+zq = griddata(XNodesPlot, YNodesPlot, U_index, X,Y,'cubic');
+
+figure;
+surf(X, Y, zq);
+xlabel('X');
+ylabel('Y');
+zlabel('U* Index');
+title('U* Index');
+%% Streamlines - updated
+UX_zq = gradient(reshape(zq,1,[]), reshape(X,1,[]));
+UY_zq = gradient(reshape(zq,1,[]), reshape(Y,1,[]));
+
+UX_zq = reshape(UX_zq,size(X));
+UY_zq = reshape(UY_zq,size(X));
+UX_zq(isinf(UX_zq)) = 1;
+UX_zq(isnan(UX_zq)) = 0;
+
+
+RightEdgeSupportNodes = SupportNodes(find((strMsh.nodes(SupportNodes,2) == max(strMsh.nodes(:,2)))));
+
+% XSupportNodes = strMsh.nodes(SupportNodes,2);
+% YSupportNodes = strMsh.nodes(SupportNodes,3);
+XSupportNodes = strMsh.nodes(RightEdgeSupportNodes,2)-0.1;
+YSupportNodes = strMsh.nodes(RightEdgeSupportNodes,3);
+[startX,startY] = meshgrid(XSupportNodes,YSupportNodes);
+figure;
+lineobj = stream2(X, Y,UX_zq,UY_zq,startX,startY);
+lineobj = streamline(lineobj);
 %% Visualization of load path
 XNodesPlot = strMsh.nodes(:,2);
 YNodesPlot = strMsh.nodes(:,3);
