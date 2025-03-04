@@ -58,7 +58,7 @@ pathToCase = '../../inputGiD/FEMPlateInMembraneActionAnalysis/';
 % caseName = 'unitTest_curvedPlateTipShearPlaneStress';
 % caseName = 'gammaStructureMixedElementsPlaneStress';
 % caseName = 'NACA2412_AoA5_CSD';
-caseName = 'trial_slab_with_openings';
+caseName = 'replication_study';
 
 % Parse the data from the GiD input file
 [strMsh, homDOFs, inhomDOFs, valuesInhomDOFs, propNBC, propAnalysis, ...
@@ -99,7 +99,7 @@ propStrDynamics = 'undefined';
 graph.index = 1;
 
 %% Output data to a VTK format
-pathToOutput = '../../outputVTK/FEMPlateInMembraneActionAnalysis/';
+pathToOutput = '../../outputVTK/FEMPlateInMembraneActionAnalysis/ReplicationStudy';
 
 %% Compute the load vector
 t = 0;
@@ -139,6 +139,7 @@ uSaved = 'undefined';
     loadFactor, computeBodyForces, propStrDynamics, t, ...
     parameters, propGaussInt);
 
+
 %% Postprocessing
 graph.visualization.geometry = 'reference_and_current';
 resultant = 'stress';
@@ -164,8 +165,26 @@ if strcmp(caseName,'unitTest_curvedPlateTipShearPlaneStress')
         forceAmplitude, propError, intError, 'outputEnabled');
 end
 
+
 %% Load Path Calculation
 % Calculation of Strain Energy, U, of Total System 
+
+% Free nodes are those that do not have support conditions or applied loading.
+    % DOFsfreeNodes = freeDOFsQ1(1:end-(numEly+1)*2);
+    % 
+    % NumNodesTotal = 1:length(strMsh.nodes(:,1));KQ1 
+    % LoadNodes = propNBC.nodes; %NumNodesTotal(end-numEly:end);
+    % SupportNodes = [1; numEly+1];
+    % FreeNodes = NumNodesTotal;
+    % FreeNodes(LoadNodes) = [];
+    % FreeNodes(SupportNodes) = [];
+    % 
+    % DOFS_load_nodes = freeDOFsQ1;
+    % DOFS_load_nodes = DOFS_load_nodes(DOFS_load_nodes>max(DOFsfreeNodes));
+    % DOFS_support_nodes = homDOFsQ1;
+    % NumberOfFreeNodesQ1 = length(DOFsfreeNodes)/2;
+
+     
 
     LoadNodes = propNBC.nodes;
     DOFsLoadNodes = zeros(2*length(LoadNodes),1);
@@ -181,27 +200,51 @@ end
         end
     end
     SupportNodes = unique(SupportNodes);
+    % SupportNodes = (homDOFs(2:2:end)/2)';
     DOFsSupportNodes = homDOFs';
 
     SupportAndLoadNodes_Ordered = sort([LoadNodes; SupportNodes]);
     DOFsSupportAndLoadNodes_Ordered = sort([DOFsLoadNodes; DOFsSupportNodes]);
     FreeNodes = (1:numNodes)';
     FreeNodes(SupportAndLoadNodes_Ordered) = [];
+    % FreeNodes = FreeNodes';
     DOFsFreeNodes = 1:2*numNodes;
     DOFsFreeNodes(DOFsSupportAndLoadNodes_Ordered) = [];
     DOFsFreeNodes = DOFsFreeNodes';
     
+    % until here the code is modified 
+
+    % u_total_known = [dHat(homDOFs); dHat(DOFsLoadNodes)];
+    % K_total = K;
+    % K_total(DOFsLoadNodes,:) = [];
+    % K_total(homDOFs,:) = [];
+    % 
+    % K_total_known_displ = K_total(:, [transpose(homDOFs), DOFsLoadNodes]);
+    % F_total_known_displ = -1*(K_total_known_displ*u_total_known);
+    % 
+    % K_total(:,DOFsLoadNodes) = [];
+    % K_total(:,homDOFs) = [];
+    % 
+    % u_total_unknown = K_total\F_total_known_displ;
+    % dHat_total_nodes = [dHat(homDOFsQ1); u_total_unknown; dHat(DOFS_load_nodes)];
+    % U_index_total = (1/2)*transpose(K*dHat_total_nodes)*dHat_total_nodes
 
 % Calculating U for the total system simply by using the calculated displacements:
     U_index_total = (1/2)*transpose(K*dHat)*dHat;
 
 %% Calculation of Strain Energy, U, For Each Node
+    % U_free_nodes = zeros(length(FreeNodes),1);
+    % U_index_free_nodes = zeros(length(FreeNodes),1);
     U_free_nodes = zeros(numNodes,1);
+    % U_index_free_nodes = zeros(numNodes,1);
     U_index = zeros(numNodes,1);
 
+    % u_iterative = zeros(length(dHat),length(FreeNodes));   % the displacement vector from each iteration done to calculate the U* values
+    % F_iterative = zeros(length(dHat),length(FreeNodes)); 
 
 % Using an updated displacement vector by solving for each system:
-    for kk = 1:numNodes
+    % dHat_known = [dHat(DOFS_load_nodes); zeros(length(DOFsSupportNodes)+2,1)];
+    for kk = 1:numNodes  %length(FreeNodes)
         fixedNodeDOF1 = (kk)*2-1;
         
         if ~ismember(fixedNodeDOF1,DOFsSupportAndLoadNodes_Ordered) && ~ismember(fixedNodeDOF1+1,DOFsSupportAndLoadNodes_Ordered)
@@ -230,12 +273,19 @@ end
             dHat_fixed_node(DOFsUnknown) = dHatUnknown;
 
             U_free_nodes(kk,1) = (1/2)*transpose(K*dHat_fixed_node)*dHat_fixed_node;
+            % U_index_free_nodes(kk,1) = 1- U_index_total/U_free_nodes(kk);
             U_index(kk,1) = 1- U_index_total/U_free_nodes(kk);
 
         end
 
     end
 
+
+    % U_index = zeros(length(strMsh.nodes(:,1)),1);
+    % U_index(2:SupportNodes(2)-1) = U_index_free_nodes(1:length(2:SupportNodes(2)-1));
+    % U_index(SupportNodes(2)+1:max(FreeNodes)) = U_index_free_nodes(length(2:SupportNodes(2)):end);
+    
+    % U_index() = zeros(numNodes,1);
     U_index(LoadNodes) = 1;
 
 %% Visualization of load path
@@ -353,4 +403,5 @@ streamslice(XGrid, YGrid,-UX,-UY)
 % xlim([propStr.X0,propStr.XLx])
 % ylim([propStr.Y0,propStr.YLy])
 hold off
+
 %% END OF THE SCRIPT
