@@ -66,7 +66,7 @@ The U* index field is calculated based on the solutions of the system. The ['str
 
 ![image](https://github.com/user-attachments/assets/6181bc07-198c-4222-854d-94838501d03e)
 
-Moreover, the variation of the U* index values along the load path (the unifromity condition) is also calculated in the codes. An example of that is shown below:
+Moreover, the variation of the U* index values along the load path (the uniformity condition) is also calculated in the codes. An example of that is shown below:
 
 ![image](https://github.com/user-attachments/assets/9ecd5d06-323c-4661-9daa-0fd1752193ac)
 
