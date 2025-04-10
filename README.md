@@ -93,3 +93,8 @@ There is also the possibility to assess the uniformity condition of different lo
 ## Release last tested
 R2024b
 
+## References
+
+K. Marhadi and S. Venkataraman, “Comparison of Quantitative and Qualitative Information Provided by Different Structural Load Path Definitions,” International Journal for Simulation and Multidisciplinary Design Optimization, vol. 3, pp. 384–400, Jul. 2009, doi: 10.1051/ijsmdo/2009014.
+
+H. Hoshino, T. Sakurai, and K. Takahashi, “Vibration reduction in the cabins of heavy-duty trucks using the theory of load transfer paths,” JSAE Review, vol. 24, no. 2, pp. 165–171, Apr. 2003, doi: 10.1016/S0389-4304(03)00005-5.
